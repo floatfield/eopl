@@ -1,7 +1,7 @@
 %token <float> FLOAT
 %token <string> ID
 %token EOF LPAREN RPAREN MINUS ZERO LET EQ IN COMMA DASH
-%token EMPTYLIST CONS
+%token EMPTYLIST CONS CAR CDR ISNULL
 %token IF THEN ELSE
 
 %start <Ast.expr option> prog
@@ -23,4 +23,7 @@ expr:
     | LET v = ID; EQ; e1 = expr; IN; e2 = expr; { Ast.LetExp (v,e1,e2) }
     | EMPTYLIST { Ast.EmptyListExp }
     | CONS; LPAREN; e1 = expr; COMMA; e2 = expr; RPAREN; { Ast.ConsExp (e1,e2) }
+    | CAR; LPAREN; e = expr; RPAREN; { Ast.CarExp e}
+    | CDR; LPAREN; e = expr; RPAREN; { Ast.CdrExp e}
+    | ISNULL; LPAREN; e = expr; RPAREN; { Ast.IsNullExp e}
     ;

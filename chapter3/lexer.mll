@@ -24,6 +24,9 @@ rule read =
     | "minus" { MINUS }
     | "emptylist" { EMPTYLIST }
     | "cons" { CONS }
+    | "car" { CAR }
+    | "cdr" { CDR }
+    | "null?" { ISNULL }
     | iden { ID (Lexing.lexeme lexbuf) }
     | '-' { DASH }
     | '(' { LPAREN }

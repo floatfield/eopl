@@ -16,6 +16,9 @@ type expr =
   | MinusExp of expr
   | EmptyListExp
   | ConsExp of expr * expr
+  | CarExp of expr
+  | CdrExp of expr
+  | IsNullExp of expr
 
 let rec string_of_value v = match v with
   | Num f -> string_of_float f
@@ -40,6 +43,9 @@ let rec value_of e env =
   | MinusExp e1 -> diff (ConstExp 0.) e1 env
   | EmptyListExp -> List []
   | ConsExp (e1,e2) -> eopl_list e1 e2 env
+  | CarExp e1 -> car e1 env
+  | CdrExp e1 -> cdr e1 env
+  | IsNullExp e1 -> is_null e1 env
 
 and diff e1 e2 env =
   let v1 = value_of e1 env in
@@ -65,6 +71,24 @@ and eopl_list e1 e2 env =
   let rest = value_of e2 env in
   match rest with
   | List ls -> List ((value_of e1 env) :: ls)
+  | _ -> raise InvalidExpression
+
+and car e1 env =
+  let v = value_of e1 env in
+  match v with
+  | List (x::_) -> x
+  | _ -> raise InvalidExpression
+
+and cdr e1 env =
+  let v = value_of e1 env in
+  match v with
+  | List (_::xs) -> List xs
+  | _ -> raise InvalidExpression
+
+and is_null e1 env =
+  let v = value_of e1 env in
+  match v with
+  | List xs -> Bool (xs = [])
   | _ -> raise InvalidExpression
 
 
