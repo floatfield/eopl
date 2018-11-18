@@ -27,6 +27,7 @@ rule read =
     | "car" { CAR }
     | "cdr" { CDR }
     | "null?" { ISNULL }
+    | "list" { LIST }
     | iden { ID (Lexing.lexeme lexbuf) }
     | '-' { DASH }
     | '(' { LPAREN }

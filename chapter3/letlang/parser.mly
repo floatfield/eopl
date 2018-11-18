@@ -1,7 +1,7 @@
 %token <float> FLOAT
 %token <string> ID
 %token EOF LPAREN RPAREN MINUS ZERO LET EQ IN COMMA DASH
-%token EMPTYLIST CONS CAR CDR ISNULL
+%token EMPTYLIST CONS CAR CDR ISNULL LIST
 %token IF THEN ELSE
 
 %start <Ast.expr option> prog
@@ -26,4 +26,5 @@ expr:
     | CAR; LPAREN; e = expr; RPAREN; { Ast.CarExp e}
     | CDR; LPAREN; e = expr; RPAREN; { Ast.CdrExp e}
     | ISNULL; LPAREN; e = expr; RPAREN; { Ast.IsNullExp e}
+    | LIST; LPAREN; es = separated_list(COMMA, expr); RPAREN; { Ast.ListOf (List.rev es) }
     ;

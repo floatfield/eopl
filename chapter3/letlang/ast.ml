@@ -4,7 +4,7 @@ exception InvalidExpression
 type value =
   | Num of float
   | Bool of bool
-  | List of value list
+  | ListVal of value list
   
 type expr =
   | ConstExp of float
@@ -19,14 +19,20 @@ type expr =
   | CarExp of expr
   | CdrExp of expr
   | IsNullExp of expr
+  | ListOf of expr list
 
 let rec string_of_value v = match v with
   | Num f -> string_of_float f
   | Bool b -> string_of_bool b
-  | List xs -> "[" ^ (String.concat "," (List.map (fun x -> string_of_value x) xs)) ^ "]"  
+  | ListVal xs -> "[" ^ (String.concat "," (List.map (fun x -> string_of_value x) xs)) ^ "]"  
 
 module Value_env = Make_env(struct type t = value end)
 open Value_env
+
+let reduce_val value x =
+  match value with
+  | ListVal l -> ListVal (x::l)
+  | _ -> raise InvalidExpression
 
 let rec value_of e env =
   match e with
@@ -41,11 +47,12 @@ let rec value_of e env =
   | LetExp (v,e1,e2) ->
       value_of e2 (extend_env v (value_of e1 env) env)
   | MinusExp e1 -> diff (ConstExp 0.) e1 env
-  | EmptyListExp -> List []
+  | EmptyListExp -> ListVal []
   | ConsExp (e1,e2) -> eopl_list e1 e2 env
   | CarExp e1 -> car e1 env
   | CdrExp e1 -> cdr e1 env
   | IsNullExp e1 -> is_null e1 env
+  | ListOf es -> list_of es env
 
 and diff e1 e2 env =
   let v1 = value_of e1 env in
@@ -70,26 +77,31 @@ and conditional e1 e2 e3 env =
 and eopl_list e1 e2 env =
   let rest = value_of e2 env in
   match rest with
-  | List ls -> List ((value_of e1 env) :: ls)
+  | ListVal ls -> ListVal ((value_of e1 env) :: ls)
   | _ -> raise InvalidExpression
 
 and car e1 env =
   let v = value_of e1 env in
   match v with
-  | List (x::_) -> x
+  | ListVal (x::_) -> x
   | _ -> raise InvalidExpression
 
 and cdr e1 env =
   let v = value_of e1 env in
   match v with
-  | List (_::xs) -> List xs
+  | ListVal (_::xs) -> ListVal xs
   | _ -> raise InvalidExpression
 
 and is_null e1 env =
   let v = value_of e1 env in
   match v with
-  | List xs -> Bool (xs = [])
+  | ListVal xs -> Bool (xs = [])
   | _ -> raise InvalidExpression
+
+and list_of es env =
+  es
+  |> List.map (fun x -> value_of x env)
+  |> List.fold_left (reduce_val) (ListVal [])
 
 
 let run_program e =
